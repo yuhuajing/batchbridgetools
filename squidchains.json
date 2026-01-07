@@ -1,0 +1,122 @@
+[
+  {
+    "id": "019b210f-45c6-7918-b151-5843b1fd0cb3",
+    "feeAmount": {
+      "type": "BigNumber",
+      "hex": "0x00"
+    },
+    "feeConfig": {
+      "bridgeFee": 0,
+      "minFee": {
+        "type": "BigNumber",
+        "hex": "0x00"
+      },
+      "maxFee": {
+        "type": "BigNumber",
+        "hex": "0x00"
+      }
+    },
+    "routerAddress": "0x2a37D63EAdFe4b4682a3c28C1c2cD4F109Cc2762",
+    "maxAmountOut": {
+      "type": "BigNumber",
+      "hex": "0x5aea14906718"
+    },
+    "originQuery": {
+      "routerAdapter": "0x0000000000000000000000000000000000000000",
+      "tokenOut": "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
+      "minAmountOut": {
+        "type": "BigNumber",
+        "hex": "0x5af3107a4000"
+      },
+      "deadline": {
+        "type": "BigNumber",
+        "hex": "0x693fc25f"
+      },
+      "rawParams": "0x"
+    },
+    "destQuery": {
+      "routerAdapter": "0x0000000000000000000000000000000000000000",
+      "tokenOut": "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
+      "minAmountOut": {
+        "type": "BigNumber",
+        "hex": "0x5aea14906718"
+      },
+      "deadline": {
+        "type": "BigNumber",
+        "hex": "0x693fc25f"
+      },
+      "rawParams": "0x36"
+    },
+    "estimatedTime": 30,
+    "bridgeModuleName": "Gas.zip",
+    "gasDropAmount": {
+      "type": "BigNumber",
+      "hex": "0x00"
+    },
+    "originChainId": 42161,
+    "destChainId": 8453,
+    "maxAmountOutStr": "0.000099961413855",
+    "bridgeFeeFormatted": "0.0",
+    "callData": null
+  },
+  {
+    "id": "019b210f-464f-7941-8de4-a519dcb9ff0f",
+    "feeAmount": {
+      "type": "BigNumber",
+      "hex": "0x00"
+    },
+    "feeConfig": {
+      "bridgeFee": 0,
+      "minFee": {
+        "type": "BigNumber",
+        "hex": "0x00"
+      },
+      "maxFee": {
+        "type": "BigNumber",
+        "hex": "0x00"
+      }
+    },
+    "routerAddress": "0x00cD000000003f7F682BE4813200893d4e690000",
+    "maxAmountOut": {
+      "type": "BigNumber",
+      "hex": "0x59e98b1bd64c"
+    },
+    "originQuery": {
+      "routerAdapter": "0x0000000000000000000000000000000000000000",
+      "tokenOut": "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
+      "minAmountOut": {
+        "type": "BigNumber",
+        "hex": "0x5af3107a4000"
+      },
+      "deadline": {
+        "type": "BigNumber",
+        "hex": "0x693fc4b7"
+      },
+      "rawParams": "0x"
+    },
+    "destQuery": {
+      "routerAdapter": "0x0000000000000000000000000000000000000000",
+      "tokenOut": "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
+      "minAmountOut": {
+        "type": "BigNumber",
+        "hex": "0x59e98b1bd64c"
+      },
+      "deadline": {
+        "type": "BigNumber",
+        "hex": "0x693fde7f"
+      },
+      "rawParams": "0x"
+    },
+    "estimatedTime": 10,
+    "bridgeModuleName": "SynapseRFQ",
+    "gasDropAmount": {
+      "type": "BigNumber",
+      "hex": "0x00"
+    },
+    "originChainId": 42161,
+    "destChainId": 8453,
+    "maxAmountOutStr": "0.000098859596109388",
+    "bridgeFeeFormatted": "0.0",
+    "callData": null
+  }
+]
