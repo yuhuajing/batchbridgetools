@@ -3,11 +3,9 @@ package spoke
 import (
 	"context"
 	"crypto/ecdsa"
-	"errors"
 	"fmt"
 	"log"
 	"main/chain"
-
 	"main/tokens"
 	"main/utils"
 	"time"
@@ -15,14 +13,11 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 )
 
-func SquidDynamicTransaction(fromChain, amount string, sender common.Address, to, data, value, gasLimit string, privateKey *ecdsa.PrivateKey) (string, error) {
+func SquidDynamicTransaction(fromChain, fromToken, amount string, sender common.Address, to, data, value, gasLimit string, privateKey *ecdsa.PrivateKey) (string, error) {
 	var ctx = context.Background()
 	client := chain.ClientFromChain[fromChain]
-	toToken := chain.TokenContracts[fromChain+"_"+chain.SQUID]
-	if toToken == "" {
-		return "", errors.New("no token contract found")
-	}
-	token := common.HexToAddress(toToken)
+
+	token := common.HexToAddress(fromToken)
 	// ERC20
 	if token != common.HexToAddress("0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee") {
 		allowance, err := tokens.CheckAllowance(token, common.HexToAddress(to), sender, client)
@@ -30,11 +25,7 @@ func SquidDynamicTransaction(fromChain, amount string, sender common.Address, to
 			return "", fmt.Errorf("get allowance error: %v", err)
 		}
 
-		amountInt, err := utils.StringToBigInt(amount)
-		if err != nil {
-			return "", err
-		}
-
+		amountInt := utils.ParseApprovalFloat()
 		if allowance.Cmp(amountInt) == -1 {
 			hash, err := tokens.TokenApprove(ctx, token, common.HexToAddress(to), sender, amountInt, privateKey, client)
 			if err == nil && hash != "" {

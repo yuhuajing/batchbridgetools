@@ -3,6 +3,7 @@ package chain
 import (
 	"context"
 	"fmt"
+	"github.com/ethereum/go-ethereum/params"
 	"log"
 	"sync"
 	"time"
@@ -23,6 +24,11 @@ const (
 	SQUID    = "squid"
 	SYNA     = "syna"
 	STARGATE = "stargate"
+)
+
+const (
+	ETHToken = "eth"
+	USDC     = "usdc"
 )
 
 var BridgeTools = []string{SQUID, SYNA, STARGATE}
@@ -92,20 +98,26 @@ var (
 // 代币合约地址映射
 var TokenContracts = map[string]string{
 	//ETH + "_" + SQUID:  "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
-	ARB + "_" + SQUID:  "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
-	BASE + "_" + SQUID: "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
-	BNB + "_" + SQUID:  "0x2170ed0880ac9a755fd29b2688956bd959f933f8",
-	//POLY + "_" + SQUID: "0x7ceb23fd6bc0add59e62ac25578270cff1b9f619",
+	ARB + "_" + ETHToken + "_" + SQUID:    "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
+	ARB + "_" + ETHToken + "_" + SYNA:     "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
+	ARB + "_" + ETHToken + "_" + STARGATE: "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
+	ARB + "_" + USDC + "_" + SQUID:        "0xaf88d065e77c8cc2239327c5edb3a432268e5831",
+	//ARB + "_" + USDC + "_" + SYNA:         "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
+	ARB + "_" + USDC + "_" + STARGATE: "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
 
-	//BNB + "_" + SYNA:  "0x2170Ed0880ac9A755fd29B2688956BD959F933F8",
-	//ETH + "_" + SYNA:  "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
-	ARB + "_" + SYNA:  "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
-	BASE + "_" + SYNA: "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
+	BASE + "_" + ETHToken + "_" + SQUID:    "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
+	BASE + "_" + ETHToken + "_" + SYNA:     "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
+	BASE + "_" + ETHToken + "_" + STARGATE: "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
+	BASE + "_" + USDC + "_" + SQUID:        "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
+	//BASE + "_" + USDC + "_" + SYNA:         "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+	BASE + "_" + USDC + "_" + STARGATE: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
 
-	//BNB + "_" + STARGATE: "0x2170Ed0880ac9A755fd29B2688956BD959F933F8",
-	//ETH + "_" + STARGATE:  "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
-	ARB + "_" + STARGATE:  "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
-	BASE + "_" + STARGATE: "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
+	BNB + "_" + ETHToken + "_" + SQUID: "0x2170ed0880ac9a755fd29b2688956bd959f933f8",
+}
+
+var TokenDecimals = map[string]float64{
+	ETHToken: params.Ether,
+	USDC:     params.GWei / 1000,
 }
 
 func init() {

@@ -6,6 +6,9 @@ import (
 )
 
 func StringToBigInt(value string) (*big.Int, error) {
+	if value == "" {
+		return big.NewInt(0), nil
+	}
 	num := new(big.Int)
 
 	// 第2个参数表示进制：10 表示十进制

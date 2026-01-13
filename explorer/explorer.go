@@ -60,7 +60,12 @@ type DataResponse struct {
 
 // 统一的桥接处理函数，支持所有跨链工具
 func handleBridge(c *fiber.Ctx) error {
-	return handleBridgeWithTools(c, []string{chain.SQUID, chain.SYNA, chain.STARGATE})
+	fromToken := c.FormValue("fromToken")
+	if fromToken == chain.ETHToken {
+		return handleBridgeWithTools(c, []string{chain.SYNA, chain.STARGATE})
+	} else {
+		return handleBridgeWithTools(c, []string{chain.STARGATE})
+	}
 }
 
 // 针对特定跨链工具的桥接处理函数
@@ -71,6 +76,7 @@ func handleBridgeWithTool(c *fiber.Ctx, tool string) error {
 func handleBridgeWithTools(c *fiber.Ctx, tools []string) error {
 	fromChain := c.FormValue("fromChain")
 	toChain := c.FormValue("toChain")
+	fromToken := c.FormValue("fromToken")
 
 	// 从表单数据中获取 CSV 文件
 	handler, err := c.FormFile("file")
@@ -82,7 +88,7 @@ func handleBridgeWithTools(c *fiber.Ctx, tools []string) error {
 			Success: false,
 		})
 	}
-	err = bridge(fromChain, toChain, tools, handler)
+	err = bridge(fromChain, toChain, fromToken, tools, handler)
 	if err != nil {
 		utils.Intolog(err.Error())
 		return c.Status(400).JSON(DataResponse{
@@ -96,8 +102,8 @@ func handleBridgeWithTools(c *fiber.Ctx, tools []string) error {
 	})
 }
 
-func bridge(fromChain, toChain string, tools []string, handler *multipart.FileHeader) error {
-	if fromChain == "" || toChain == "" || fromChain == toChain {
+func bridge(fromChain, toChain, fromToken string, tools []string, handler *multipart.FileHeader) error {
+	if fromChain == "" || toChain == "" || fromToken == "" || fromChain == toChain {
 		return fmt.Errorf("源链： %s 和目标链: %s 不能为空或者相同", fromChain, toChain)
 	}
 
@@ -144,11 +150,11 @@ func bridge(fromChain, toChain string, tools []string, handler *multipart.FileHe
 
 		switch tool {
 		case chain.SQUID:
-			err = squids(fromChain, toChain, amount, sender, receiver, httpclient, index, ecdsaPrivateKey)
+			err = squids(fromChain, toChain, fromToken, amount, sender, receiver, httpclient, index, ecdsaPrivateKey)
 		case chain.STARGATE:
-			err = stargates(fromChain, toChain, amount, sender, receiver, httpclient, index, ecdsaPrivateKey)
+			err = stargates(fromChain, toChain, fromToken, amount, sender, receiver, httpclient, index, ecdsaPrivateKey)
 		case chain.SYNA:
-			err = synas(fromChain, toChain, amount, sender, receiver, httpclient, index, ecdsaPrivateKey)
+			err = synas(fromChain, toChain, fromToken, amount, sender, receiver, httpclient, index, ecdsaPrivateKey)
 		default:
 			err = fmt.Errorf("不支持的跨链工具")
 		}
@@ -166,11 +172,15 @@ func bridge(fromChain, toChain string, tools []string, handler *multipart.FileHe
 	return nil
 }
 
-func squids(fromChain, toChain, amount string, sender, receiver common.Address, httpclient *http.Client, index int, pk *ecdsa.PrivateKey) error {
+func squids(fromChain, toChain, token, amount string, sender, receiver common.Address, httpclient *http.Client, index int, pk *ecdsa.PrivateKey) error {
 	// 获取 Squid 路由
-	amount = utils.ParseFloat(amount)
+	decimal, err := getDecimal(token)
+	if err != nil {
+		return err
+	}
+	amount = utils.ParseFloat(decimal, amount)
 	utils.Intolog(fmt.Sprintf("---获取Squid-Route中,from :%s , to: %s， value: %s", fromChain, toChain, amount))
-	fromToken, toToken, err := getToken(fromChain, toChain, chain.SQUID)
+	fromToken, toToken, err := getToken(fromChain, toChain, token, chain.SQUID)
 	if err != nil {
 		return err
 	}
@@ -191,7 +201,7 @@ func squids(fromChain, toChain, amount string, sender, receiver common.Address, 
 
 	// 发送 Squid 跨链交易
 	utils.Intolog(fmt.Sprintf("---发送Squid跨链交易中,from：%s, to: %s, amount: %s", fromChain, toChain, amount))
-	hash, err := spoke.SquidDynamicTransaction(fromChain, amount, sender, target, data, value, limit, pk)
+	hash, err := spoke.SquidDynamicTransaction(fromChain, fromToken, amount, sender, target, data, value, limit, pk)
 	if err != nil {
 		return fmt.Errorf("###第 %d 行 发送Squid跨链交易失败: %v \n", index+1, err.Error())
 	}
@@ -199,15 +209,19 @@ func squids(fromChain, toChain, amount string, sender, receiver common.Address, 
 	return nil
 }
 
-func synas(fromChain, toChain, amount string, sender, receiver common.Address, httpclient *http.Client, index int, pk *ecdsa.PrivateKey) error {
+func synas(fromChain, toChain, token, amount string, sender, receiver common.Address, httpclient *http.Client, index int, pk *ecdsa.PrivateKey) error {
 	// 获取 Syna 路由
-	amount = utils.ParseFloat(amount)
-	utils.Intolog(fmt.Sprintf("---获取Syna-Route中,from :%s , to: %s， value: %s", fromChain, toChain, amount))
-	fromToken, toToken, err := getToken(fromChain, toChain, chain.SYNA)
+	decimal, err := getDecimal(token)
 	if err != nil {
 		return err
 	}
-	amountInt := utils.HexStringToBigInt(utils.ParseFloat(amount))
+	amount = utils.ParseFloat(decimal, amount)
+	utils.Intolog(fmt.Sprintf("---获取Syna-Route中,from :%s , to: %s， value: %s", fromChain, toChain, amount))
+	fromToken, toToken, err := getToken(fromChain, toChain, token, chain.SYNA)
+	if err != nil {
+		return err
+	}
+	amountInt := utils.HexStringToBigInt(amount)
 	payload := map[string]string{
 		"fromChainId": chain.ChainConfigs[fromChain].Id,
 		"fromToken":   fromToken,
@@ -227,7 +241,7 @@ func synas(fromChain, toChain, amount string, sender, receiver common.Address, h
 	// 发送 Syna 跨链交易
 	utils.Intolog("---发送Syna跨链交易中")
 	//amount := utils.ParseFloat(amountStr)
-	hash, err := syna.SynaFastBridge(fromChain, sender, amountInt, quote, pk)
+	hash, err := syna.SynaFastBridge(fromChain, fromToken, sender, amountInt, quote, pk)
 	if err != nil {
 		return fmt.Errorf("###第 %d 行 发送Syna跨链交易失败: %v \n", index+1, err.Error())
 	}
@@ -235,15 +249,19 @@ func synas(fromChain, toChain, amount string, sender, receiver common.Address, h
 	return nil
 }
 
-func stargates(fromChain, toChain, amount string, sender, receiver common.Address, httpclient *http.Client, index int, pk *ecdsa.PrivateKey) error {
+func stargates(fromChain, toChain, token, amount string, sender, receiver common.Address, httpclient *http.Client, index int, pk *ecdsa.PrivateKey) error {
 	// 获取 Stargate 路由
 	utils.Intolog(fmt.Sprintf("---获取Stargate-Route中,from :%s , to: %s， value: %s", fromChain, toChain, amount))
-	fromToken, toToken, err := getToken(fromChain, toChain, chain.STARGATE)
+	fromToken, toToken, err := getToken(fromChain, toChain, token, chain.STARGATE)
+	if err != nil {
+		return err
+	}
+	decimal, err := getDecimal(token)
 	if err != nil {
 		return err
 	}
 
-	amountInt := utils.HexStringToBigInt(utils.ParseFloat(amount))
+	amountInt := utils.HexStringToBigInt(utils.ParseFloat(decimal, amount))
 	amountIntMin := new(big.Int).Mul(new(big.Int).Div(amountInt, big.NewInt(100)), big.NewInt(95))
 	payload := map[string]string{
 		"srcToken":     fromToken,
@@ -265,7 +283,7 @@ func stargates(fromChain, toChain, amount string, sender, receiver common.Addres
 	// 发送 Stargate 跨链交易
 	utils.Intolog("---发送Stargate跨链交易中")
 	//amount := utils.ParseFloat(amountStr)
-	hash, err := stargate.StargateFastBridge(fromChain, sender, amountInt, quote, pk)
+	hash, err := stargate.StargateFastBridge(fromChain, fromToken, sender, amountInt, quote, pk)
 	if err != nil {
 		return fmt.Errorf("###第 %d 行 发送 stargate 跨链交易失败: %v \n", index+1, err.Error())
 	}
@@ -273,11 +291,20 @@ func stargates(fromChain, toChain, amount string, sender, receiver common.Addres
 	return nil
 }
 
-func getToken(fromChain, toChain, chains string) (string, string, error) {
-	fromToken := chain.TokenContracts[fromChain+"_"+chains]
-	toToken := chain.TokenContracts[toChain+"_"+chains]
+func getToken(fromChain, toChain, token, chains string) (string, string, error) {
+	fromToken := chain.TokenContracts[fromChain+"_"+token+"_"+chains]
+	toToken := chain.TokenContracts[toChain+"_"+token+"_"+chains]
 	if fromToken == "" || toToken == "" {
 		return "", "", fmt.Errorf("%s 不支持的链，源链 :%s , 目标链: %s", chains, fromChain, toChain)
 	}
 	return fromToken, toToken, nil
+}
+
+func getDecimal(token string) (float64, error) {
+	decimal, ok := chain.TokenDecimals[token]
+	if !ok {
+		return 0, fmt.Errorf("没有设置正确的Token单位")
+	}
+
+	return decimal, nil
 }

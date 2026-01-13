@@ -14,14 +14,11 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 )
 
-func SynaFastBridge(fromChain string, fromAddress common.Address, amount *big.Int, data BridgeRoute, pk *ecdsa.PrivateKey) (string, error) {
+func SynaFastBridge(fromChain, fromToken string, fromAddress common.Address, amount *big.Int, data BridgeRoute, pk *ecdsa.PrivateKey) (string, error) {
 	var ctx = context.Background()
 	client := chain.ClientFromChain[fromChain]
 
-	//amountIn, _ := utils.StringToBigInt(amount)
-
-	t := chain.TokenContracts[fromChain+"_"+chain.SYNA]
-	token := common.HexToAddress(t)
+	token := common.HexToAddress(fromToken)
 	// ERC20
 	if token != common.HexToAddress("0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE") {
 		allowance, err := tokens.CheckAllowance(token, common.HexToAddress(data.RouterAddress), fromAddress, client)
@@ -30,7 +27,8 @@ func SynaFastBridge(fromChain string, fromAddress common.Address, amount *big.In
 		}
 
 		if allowance.Cmp(amount) == -1 {
-			hash, err := tokens.TokenApprove(ctx, token, common.HexToAddress(data.RouterAddress), fromAddress, amount, pk, client)
+			amountInt := utils.ParseApprovalFloat()
+			hash, err := tokens.TokenApprove(ctx, token, common.HexToAddress(data.RouterAddress), fromAddress, amountInt, pk, client)
 			if err == nil && hash != "" {
 				for {
 					//time.Sleep(500 * time.Millisecond)

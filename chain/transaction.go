@@ -119,5 +119,5 @@ func BuildAndSendTransaction(ctx context.Context, client *ethclient.Client, send
 	// Wait for transaction to be processed
 	//time.Sleep(2 * time.Second)
 
-	return fmt.Sprintf("tx hash: %s", signedTx.Hash().Hex()), nil
+	return fmt.Sprintf("%s", signedTx.Hash().Hex()), nil
 }
